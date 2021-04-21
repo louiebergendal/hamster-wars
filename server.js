@@ -3,18 +3,14 @@ const app = express()
 const cors = require('cors')
 const path = require('path')
 const books = require('./routes/books.js')
+const books = require('./routes/hamsters.js')
 
 const PORT = 1339
 const staticFolder = path.join(__dirname, 'static')
 
 // ============= NOTES ============= //
 /* 
-	BEHÖVER HJÄLP:
-	- Lär ha gjort fel med git
-	- PUT, DELETE OCH POST Funkar inte
-
 	TODO:
-	- *Behöver hjälp
 	- Gör en ny route
 		- hamsterWars.js
 		- lägg till en knapp i hamsterwars
@@ -43,6 +39,7 @@ app.use( express.static(staticFolder) )
 
 // REST API for /books
 app.use('/books', books)
+app.use('/hamsters', books)
 
 // Starta servern
 app.listen(PORT, () => {

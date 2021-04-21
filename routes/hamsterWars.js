@@ -8,19 +8,19 @@ const router = express.Router()
 
 // ** REST API **
 
-// GET /books
+// GET /hamsters
 router.get('/', async (req, res) => {
 
-	const booksRef = db.collection('books')
-	const snapshot = await booksRef.get()
+	const hamstersRef = db.collection('hamsters')
+	const snapshot = await hamstersRef.get()
 
-	// Om books inte är tom
+	// Om hamsters inte är tom
 	if( snapshot.empty ) {
 		res.send([])
 		return
 	}
 
-	// Om books är tom
+	// Om hamsters är tom
 	let items = []
 
 	// Snapshot är en firestore-funktion.
@@ -35,13 +35,13 @@ router.get('/', async (req, res) => {
 	res.send(items)
 })
 
-// GET /books/:id
+// GET /hamsters/:id
 router.get('/:id', async (req, res) => {
 	const id = req.params.id
-	const docRef = await db.collection('books').doc(id).get()
+	const docRef = await db.collection('hamsters').doc(id).get()
 
 	if( !docRef.exists ) {
-		res.status(404).send('Book does not exist')
+		res.status(404).send('Hamster does not exist')
 		return
 	}
 
@@ -49,22 +49,22 @@ router.get('/:id', async (req, res) => {
 	res.send(data)
 })
 
-// POST /books
+// POST /hamsters
 router.post('/', async (req, res) => {
 	// OBS! Måste installera express.json för att detta ska fungera
 	const object = req.body
 
-	if( !isBooksObject(object) ) {
-		console.log('POST/ books had an error!')
+	if( !ishamstersObject(object) ) {
+		console.log('POST/ hamsters had an error!')
 		res.sendStatus(400)
 		return
 	}
 
-	const docRef = await db.collection('books').add(object)
+	const docRef = await db.collection('hamsters').add(object)
 	res.send(docRef.id)
 })
 
-// PUT /books/:id
+// PUT /hamsters/:id
 router.put('/:id', async (req, res) => {
 	// OBS! Måste installera express.json för att detta ska fungera
 	const object = req.body
@@ -79,12 +79,12 @@ router.put('/:id', async (req, res) => {
 	// Den här koden godkänner id som inte matchar, 
 	// och lägger till ett nytt doc i databasen.
 
-	const docRef = db.collection('books').doc(id)
+	const docRef = db.collection('hamsters').doc(id)
 	await docRef.set(object, { merge: true })
 	res.sendStatus(200)
 })
 
-// DELETE /books/:id
+// DELETE /hamsters/:id
 router.delete('/:id', async (req, res) => {
 	const id = req.params.id
 
@@ -93,7 +93,7 @@ router.delete('/:id', async (req, res) => {
 		return
 	}
 
-	await db.collection('books').doc(id).delete()
+	await db.collection('hamsters').doc(id).delete()
 	res.sendStatus(200)
 })
 
@@ -103,7 +103,7 @@ router.delete('/:id', async (req, res) => {
 
 
 
-function isBooksObject(maybeObject) {
+function ishamstersObject(maybeObject) {
 
 	console.log('MAYBE OBJECT: ', maybeObject);
 
@@ -115,7 +115,5 @@ function isBooksObject(maybeObject) {
 
 	return true
 }
-
-
 
 module.exports = router
