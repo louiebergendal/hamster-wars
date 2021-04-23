@@ -250,6 +250,7 @@ router.put('/:id/win', async (req, res) => {
 // PUT /hamsters/:id/lose
 router.put('/:id/lose', async (req, res) => {
 	try {
+
 		// Validerar id och kontrollerar att hamstern finns
 		const id = req.params.id
 		const docRef = db.collection('hamsters').doc(id)
@@ -293,6 +294,8 @@ router.put('/:id/lose', async (req, res) => {
 // DELETE /hamsters/:id
 router.delete('/:id', async (req, res) => {
 	try {
+
+		// Validerar id och kontrollerar att hamstern finns
 		const id = req.params.id
 		const docRef = await db.collection('hamsters').doc(id).get()
 
