@@ -107,26 +107,15 @@ router.get('/random', async (req, res) => {
 
 // GET /hamsters/:id
 router.get('/:id', async (req, res) => {
-	console.log('GET /hamsters/:id');
 	try {
 		const id = req.params.id
 		const docRef = await db.collection('hamsters').doc(id).get()
 
-// ---------------------------------------------------------------
-
-		// Validering
-		if( !id ) {
-			console.log('Oops! Missing id!');
-			res.status(400).send('Oops! Missing id!')
+		if (idValidation(id, docRef, res) === false) {
+			console.log('----> OH NO!');
 			return
-		}
-		if( !docRef.exists ) {
-			console.log('No such hamster!');
-			res.status(404).send('No such hamster!')
-			return
-		}
+		}	
 
-// ---------------------------------------------------------------		
 		const hamster = docRef.data() // Det id man hämtar den med är inte samma som det som står på hamstern!
 		
 		res.status(200).send(hamster)
@@ -164,15 +153,19 @@ router.post('/', async (req, res) => {
 // PUT /hamsters/:id
 router.put('/:id', async (req, res) => {
 	try {	
-		const body = req.body
-		const id = req.params.id
 
-		// Grundläggande validering av request
-		if( !id ) {
-			console.log('Oops! Missing id!');
-			res.status(400).send('Oops! Missing id!')
+		// Validerar id och kontrollerar att hamstern finns
+		const id = req.params.id
+		const docRef = db.collection('hamsters').doc(id)
+		const doc = await docRef.get();
+
+		if (idValidation(id, doc, res) === false) {
 			return
-		}
+		}		
+
+
+		// Kollar så att det finns en body
+		const body = req.body
 
 		if( !body ) {
 			console.log('Oops! Missing body!');
@@ -180,26 +173,17 @@ router.put('/:id', async (req, res) => {
 			return
 		}
 
-		// Hämtar rätt hamster
-		const docRef = db.collection('hamsters').doc(id)
-		const doc = await docRef.get();
 
-		// Kollar ifall hamstern finns
-		if (!doc.exists) {
-			console.log('No such hamster!');
-			res.status(404).send('No such hamster!')
-			return
-		}
-
-		let hamster = doc.data();
-		
 		// Validerar body
+		let hamster = doc.data();		
+
 		if (!partialKeyValidation(body, hamster, res)) {
 			return
 		}
 		if (!partialValueValidation(body, res)) {
 			return
 		}
+
 
 		// Skickar över data från body till hamster
 		Object.keys(body).forEach(bodyKey => { // "Object.Keys()" Gör så att man kan hantera ett objekt som en array (loopa etc)
@@ -222,26 +206,31 @@ router.put('/:id', async (req, res) => {
 // PUT /hamsters/:id/win
 router.put('/:id/win', async (req, res) => {
 	try {
+
+		// Validerar id och kontrollerar att hamstern finns
 		const id = req.params.id
-
-		if( !id ) {
-			console.log('Oops! Missing id!');
-			res.status(400).send('Oops! Missing id!')
-			return
-		}
-
-		// Hämtar rätt hamster
 		const docRef = db.collection('hamsters').doc(id)
 		const doc = await docRef.get();
 
-		// Kollar ifall hamstern finns
-		if (!doc.exists) {
-			console.log('No such hamster!');
-			res.status(404).send('No such hamster!')
+		if (idValidation(id, doc, res) === false) {
 			return
 		}
 
+		// Validerar body
 		let hamster = doc.data();
+		const body = req.body
+
+		if( !body ) {
+			console.log('Oops! Missing body!');
+			res.status(400).send('Oops! Missing body!')
+			return
+		}		
+		if (!partialKeyValidation(body, hamster, res)) {
+			return
+		}
+		if (!partialValueValidation(body, res)) {
+			return
+		}
 
 		// Hamstern vinner
 		hamster.wins ++;
@@ -261,25 +250,30 @@ router.put('/:id/win', async (req, res) => {
 // PUT /hamsters/:id/lose
 router.put('/:id/lose', async (req, res) => {
 	try {
+		// Validerar id och kontrollerar att hamstern finns
 		const id = req.params.id
-
-		if( !id ) {
-			console.log('Oops! Missing id!');
-			res.status(400).send('Oops! Missing id!')
-			return
-		}
-	
-		// Hämtar rätt hamster
 		const docRef = db.collection('hamsters').doc(id)
 		const doc = await docRef.get();
 
-		// Kollar ifall hamstern finns
-		if (!doc.exists) {
-			console.log('No such hamster!');
-			res.status(404).send('No such hamster!')
+		if (idValidation(id, doc, res) === false) {
 			return
 		}
+
+		// Validerar body
 		let hamster = doc.data();
+		const body = req.body
+
+		if( !body ) {
+			console.log('Oops! Missing body!');
+			res.status(400).send('Oops! Missing body!')
+			return
+		}		
+		if (!partialKeyValidation(body, hamster, res)) {
+			return
+		}
+		if (!partialValueValidation(body, res)) {
+			return
+		}
 	
 		// Hamstern förlorar
 		hamster.defeats ++;
@@ -300,24 +294,11 @@ router.put('/:id/lose', async (req, res) => {
 router.delete('/:id', async (req, res) => {
 	try {
 		const id = req.params.id
+		const docRef = await db.collection('hamsters').doc(id).get()
 
-		// Grundläggande validering av request
-		if( !id ) {
-			console.log('Oops! Missing id!');
-			res.status(400).send('Oops! Missing id!')
+		if (idValidation(id, docRef, res) === false) {
 			return
-		}
-
-		// Letar upp hamstern som ska tas bort
-		const docRef = db.collection('hamsters').doc(id)
-		const doc = await docRef.get();
-
-		// Kollar ifall hamstern finns
-		if (!doc.exists) {
-			console.log('No such hamster!');
-			res.status(404).send('No such hamster!')
-			return
-		}
+		}		
 	
 		// Allt gick bra
 		await db.collection('hamsters').doc(id).delete()
@@ -332,6 +313,29 @@ router.delete('/:id', async (req, res) => {
 
 
 // =================== FUNKTIONER =================== //
+
+function idValidation(id, docRef, res){
+
+	console.log('Analyzing id ...');
+
+	// Grundläggande validering av request
+	if( !id ) {
+		console.log('Missing id. Query rejected.');
+		res.status(400).send('Missing id. Query rejected.')
+		return false
+	}
+
+	// Kollar ifall hamstern finns
+	if ( !docRef.exists ) {
+		console.log('No such hamster. Query rejected.');
+		res.status(404).send('No such hamster. Query rejected.')
+		return false
+	}
+
+	console.log('Hamster found!');
+	return true
+}
+
 
 function partialValueValidation(body, res){
 
