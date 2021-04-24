@@ -5,7 +5,7 @@ const path = require('path')
 const books = require('./routes/books.js')
 const hamsterWars = require('./routes/hamsters.js')
 
-const PORT = 1339
+const PORT = process.env.PORT || 1339
 const staticFolder = path.join(__dirname, 'static')
 const staticImgFolder = path.join(__dirname, 'static', 'img')
 
