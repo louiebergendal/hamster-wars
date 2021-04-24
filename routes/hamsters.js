@@ -5,8 +5,6 @@ const express = require('express')
 const json = require('express-json')
 const router = express.Router()
 
-
-
 // INDEX:
 // GET /hamsters
 // GET /hamsters/random
@@ -24,23 +22,7 @@ const router = express.Router()
 // ============= NOTES ============= //
 /* 
 	TODO:
-	- Se efter så att statuskoderna matchar med uppgiften
-		Alla API-resurser ska returnera JSON eller en HTTP statuskod:
-
-		200 (ok) - Om servern lyckats med att göra det som resursen motsvarar.
-		
-		400 (bad request) - Om requestet är felaktigt gjort, så att servern inte kan fortsätta. 
-		Exempel: POST /hamsters skickar med ett objekt som inte är ett hamster-objekt.
-		
-		404 (not found) - Om resursen eller objektet som efterfrågas inte finns. 
-		Exempel: id motsvarar inte något dokument i databasen. GET /hamsters/felaktigt-id
-		
-		500 (internal server error) - Om ett fel inträffar på servern. 
-		Använd catch för att fånga det.
-
-	- Dokumentera
-	- Bryt ut funktioner
-	- Olika hamstrar
+	
 */
 
 // ** REST API **
@@ -48,10 +30,11 @@ const router = express.Router()
 // GET /hamsters
 router.get('/', async (req, res) => {
 	try {
+
+		// Kollar ifall databasen är tom
 		const hamstersRef = db.collection('hamsters')
 		const snapshot = await hamstersRef.get()
-		
-		// Om hamsters tom
+
 		if( snapshot.empty ) {
 			res.send([])
 			return
@@ -59,13 +42,14 @@ router.get('/', async (req, res) => {
 	
 		let hamsters = []
 	
-		// Fyller hamsters med innehållet i hamstrarna i databasen
+		// Fyller hamsters med hamstrarna i databasen
 		snapshot.forEach(doc => {
 			const hamster = doc.data()
-			hamster.id = doc.id  // id behövs för POST+PUT+DELETE
+			hamster.id = doc.id
 			hamsters.push( hamster )
 		})
 	
+		// Allt gick bra. Hamstrarna skickas.
 		res.status(200).send(hamsters)
 
 	} catch (error) {
@@ -77,16 +61,17 @@ router.get('/', async (req, res) => {
 // GET /hamsters/random
 router.get('/random', async (req, res) => {
 	try {
+
+		// Kollar ifall databasen är tom
 		const hamstersRef = db.collection('hamsters')
 		const snapshot = await hamstersRef.get()
-	
-		// Om hamsters är tom
+		
 		if( snapshot.empty ) {
 			res.send([])
 			return
 		}
-	
-		// Om hamsters är tom
+
+		// Fyller på en array att slumpa en hamster ifrån
 		let hamsters = []
 
 		snapshot.forEach(doc => { // Loop
@@ -95,8 +80,8 @@ router.get('/random', async (req, res) => {
 			hamsters.push( hamster )
 		})
 	
+		// Allt gick bra. Slumpar fram en hamster från hamsters och skickar.
 		randomHamster = hamsters[getRandomInt(hamsters.length)]
-	
 		res.status(200).send(randomHamster)
 
 	} catch (error) {
@@ -108,16 +93,17 @@ router.get('/random', async (req, res) => {
 // GET /hamsters/:id
 router.get('/:id', async (req, res) => {
 	try {
+
+		// Validerar id och kontrollerar att hamstern finns
 		const id = req.params.id
 		const docRef = await db.collection('hamsters').doc(id).get()
 
 		if (idValidation(id, docRef, res) === false) {
-			console.log('----> OH NO!');
 			return
 		}	
 
-		const hamster = docRef.data() // Det id man hämtar den med är inte samma som det som står på hamstern!
-		
+		// Allt gick bra. Skickar hamster
+		const hamster = docRef.data()	
 		res.status(200).send(hamster)
 
 	} catch (error) {
@@ -132,7 +118,7 @@ router.post('/', async (req, res) => {
 	try {
 		const body = req.body
 
-		console.log('NOW KEY VALIDATION!');
+		// Validerar bodyn
 		if (hamsterKeyValidation(body, res) === false) {
 			return
 		}
@@ -161,29 +147,24 @@ router.put('/:id', async (req, res) => {
 
 		if (idValidation(id, doc, res) === false) {
 			return
-		}		
+		}	
 
+		let hamster = doc.data();
 
-		// Kollar så att det finns en body
+		// Validerar body
 		const body = req.body
 
 		if( !body ) {
-			console.log('Oops! Missing body!');
-			res.status(400).send('Oops! Missing body!')
+			console.log('Missing body. Query rejected.');
+			res.status(400).send('Missing body. Query rejected.')
 			return
-		}
-
-
-		// Validerar body
-		let hamster = doc.data();		
-
+		}	
 		if (!partialKeyValidation(body, hamster, res)) {
 			return
 		}
 		if (!partialValueValidation(body, res)) {
 			return
 		}
-
 
 		// Skickar över data från body till hamster
 		Object.keys(body).forEach(bodyKey => { // "Object.Keys()" Gör så att man kan hantera ett objekt som en array (loopa etc)
@@ -216,21 +197,7 @@ router.put('/:id/win', async (req, res) => {
 			return
 		}
 
-		// Validerar body
 		let hamster = doc.data();
-		const body = req.body
-
-		if( !body ) {
-			console.log('Oops! Missing body!');
-			res.status(400).send('Oops! Missing body!')
-			return
-		}		
-		if (!partialKeyValidation(body, hamster, res)) {
-			return
-		}
-		if (!partialValueValidation(body, res)) {
-			return
-		}
 
 		// Hamstern vinner
 		hamster.wins ++;
@@ -260,21 +227,7 @@ router.put('/:id/lose', async (req, res) => {
 			return
 		}
 
-		// Validerar body
 		let hamster = doc.data();
-		const body = req.body
-
-		if( !body ) {
-			console.log('Oops! Missing body!');
-			res.status(400).send('Oops! Missing body!')
-			return
-		}		
-		if (!partialKeyValidation(body, hamster, res)) {
-			return
-		}
-		if (!partialValueValidation(body, res)) {
-			return
-		}
 	
 		// Hamstern förlorar
 		hamster.defeats ++;
@@ -301,7 +254,7 @@ router.delete('/:id', async (req, res) => {
 
 		if (idValidation(id, docRef, res) === false) {
 			return
-		}		
+		}
 	
 		// Allt gick bra
 		await db.collection('hamsters').doc(id).delete()
@@ -335,7 +288,7 @@ function idValidation(id, docRef, res){
 		return false
 	}
 
-	console.log('Hamster found!');
+	console.log('Hamster found.');
 	return true
 }
 
@@ -344,22 +297,33 @@ function partialValueValidation(body, res){
 
 	console.log('Analyzing object values ...');
 
-	let valueValid = true
+	let numbersValid = true
+	let stringsValid = true
 
 	Object.keys(body).forEach(bodyKey => { // "Object.Keys()" Gör så att man kan hantera ett objekt som en array (loopa etc)
 
 		// Kollar så att bodynyckelns värde har rätt datatyp
 		if (bodyKey === 'age' || bodyKey === 'wins' || bodyKey === 'defeats' || bodyKey === 'games') {
 			if ( typeof body[bodyKey] != 'number') {
-				valueValid = false
+				numbersValid = false
+			}
+		}
+		if (bodyKey === 'name' || bodyKey === 'favFood' || bodyKey === 'loves' || bodyKey === 'imgName') {
+			if ( typeof body[bodyKey] != 'string') {
+				stringsValid = false
 			}
 		}
 	});
 
 	// Om datatypen är fel så godtas inte queryn
-	if (valueValid === false) {
-		console.log('age, wins, defeats and games must be numbers. Query rejected.');
-		res.status(400).send('age, wins, defeats and games must be numbers. Query rejected.')
+	if (numbersValid === false) {
+		console.log('"age", "wins", "defeats" and "games" must be numbers. Query rejected.');
+		res.status(400).send('"age", "wins", "defeats" and "games" must be numbers. Query rejected.')
+		return false	
+	}
+	if (stringsValid === false) {
+		console.log('"name", "favFood", "loves" and "imgName" must be strings. Query rejected.');
+		res.status(400).send('"name", "favFood", "loves" and "imgName" must be strings. Query rejected.')
 		return false	
 	}
 
@@ -373,13 +337,12 @@ function partialKeyValidation(body, hamster, res){
 
 	let keyExists = true
 
-	Object.keys(body).forEach(bodyKey => { // "Object.Keys()" Gör så att man kan hantera ett objekt som en array (loopa etc)
-		if (hamster[bodyKey] === undefined) { // "hamster[bodyKey]" letar efter en nyckel i hamster som matchar nyckeln i body
+	// Loopar igenom body och kollar så att inga nyckar är fel
+	Object.keys(body).forEach(bodyKey => {
+		if (hamster[bodyKey] === undefined) {
 			keyExists = false
 		}
 	});
-
-	console.log('keyExists -------->', keyExists);
 
 	// Om någon nyckel inte stämmer så skickas ett felmeddelande
 	if (keyExists === false) {
@@ -396,12 +359,14 @@ function hamsterKeyValidation(body, res){
 
 	console.log('Analyzing hamster keys ...');
 
+	// Kollar så att antalet properties stämmer
 	if( Object.keys(body).length > 8 ) {
 		console.log('To many properties. Query rejected.');
 		res.status(400).send('To many properties. Query rejected.')
 		return false
 	}
 
+	// Kollar så att alla nyckar finns med
 	if (typeof body.name === 'undefined') {
 		console.log('The hamster needs a name. Query rejected.');
 		res.status(400).send('The hamster needs a name. Query rejected.')
@@ -410,43 +375,43 @@ function hamsterKeyValidation(body, res){
 
 	if (typeof body.age === 'undefined') {
 		console.log('The hamster needs a age. Query rejected.');
-		res.status(400).send('The hamster needs a age. Query rejected.')
+		res.status(400).send('The hamster needs a "age". Query rejected.')
 		return false
 	}
 
 	if (typeof body.favFood === 'undefined') {
-		console.log('The hamster needs a favFood. Query rejected.');
-		res.status(400).send('The hamster needs a favFood. Query rejected.')
+		console.log('The hamster needs a "favFood". Query rejected.');
+		res.status(400).send('The hamster needs a "favFood". Query rejected.')
 		return false
 	}
 
 	if (typeof body.loves === 'undefined') {
-		console.log('The hamster needs a loves. Query rejected.');
-		res.status(400).send('The hamster needs a loves. Query rejected.')
+		console.log('The hamster needs a "loves". Query rejected.');
+		res.status(400).send('The hamster needs a "loves". Query rejected.')
 		return false
 	}
 
 	if (typeof body.imgName === 'undefined') {
-		console.log('The hamster needs a imgName. Query rejected.');
-		res.status(400).send('The hamster needs a imgName. Query rejected.')
+		console.log('The hamster needs a "imgName". Query rejected.');
+		res.status(400).send('The hamster needs a "imgName". Query rejected.')
 		return false
 	}
 
 	if (typeof body.wins === 'undefined') {
-		console.log('The hamster needs a wins. Query rejected.');
-		res.status(400).send('The hamster needs a wins. Query rejected.')
+		console.log('The hamster needs a "wins". Query rejected.');
+		res.status(400).send('The hamster needs a "wins". Query rejected.')
 		return false
 	}
 
 	if (typeof body.defeats === 'undefined') {
-		console.log('The hamster needs a defeats. Query rejected.');
-		res.status(400).send('The hamster needs a defeats. Query rejected.')
+		console.log('The hamster needs a "defeats". Query rejected.');
+		res.status(400).send('The hamster needs a "defeats". Query rejected.')
 		return false
 	}
 
 	if (typeof body.games === 'undefined') {
-		console.log('The hamster needs a games. Query rejected.');
-		res.status(400).send('The hamster needs a games. Query rejected.')
+		console.log('The hamster needs a "games". Query rejected.');
+		res.status(400).send('The hamster needs a "games". Query rejected.')
 		return false
 	}
 
@@ -458,51 +423,59 @@ function hamsterValueValidation(body, res){
 
 	console.log('Analyzing hamster ...');
 
+	// Kollar så att alla värden är ifyllda och är av rätt data-typ
 	if (typeof body.name !== 'string' || body.name === '') {
-		console.log('name must be a string containing one or more letters. Query rejected.');
-		res.status(400).send('Name must be a string containing one or more letters. Query rejected.')
+		console.log('"name" must be a string containing one or more letters. Query rejected.');
+		res.status(400).send('"name" must be a string containing one or more letters. Query rejected.')
 		return false
 	}
 
 	if (typeof body.age !== 'number' || body.age < -1) {
-		console.log('age must be a positive number. Query rejected.');
-		res.status(400).send('Age must be a positive number. Query rejected.')
+		console.log('"age" must be a positive number. Query rejected.');
+		res.status(400).send('"age" must be a positive number. Query rejected.')
 		return false
 	}
 
 	if (typeof body.favFood !== 'string' || body.favFood === '') {
-		console.log('favFood must be a string containing one or more letters. Query rejected.');
-		res.status(400).send('favFood must be a string containing one or more letters. Query rejected.')
+		console.log('"favFood" must be a string containing one or more letters. Query rejected.');
+		res.status(400).send('"favFood" must be a string containing one or more letters. Query rejected.')
 		return false
 	}
 
 	if (typeof body.loves !== 'string' || body.loves === '') {
-		console.log('loves must be a string containing one or more letters. Query rejected.');
-		res.status(400).send('loves must be a string containing one or more letters. Query rejected.')
+		console.log('"loves" must be a string containing one or more letters. Query rejected.');
+		res.status(400).send('"loves" must be a string containing one or more letters. Query rejected.')
 		return false
 	}
 
 	if (typeof body.imgName !== 'string' || body.imgName === '') {
-		console.log('imgName must be a string containing one or more letters. Query rejected.');
-		res.status(400).send('imgName must be a string containing one or more letters. Query rejected.')
+		console.log('"imgName" must be a string containing one or more letters. Query rejected.');
+		res.status(400).send('"imgName" must be a string containing one or more letters. Query rejected.')
 		return false
 	}
 
 	if (typeof body.wins !== 'number' || body.wins < -1) {
-		console.log('wins must be a positive number. Query rejected.');
-		res.status(400).send('wins must be a positive number. Query rejected.')
+		console.log('"wins" must be a positive number. Query rejected.');
+		res.status(400).send('"wins" must be a positive number. Query rejected.')
 		return false
 	}
 
 	if (typeof body.defeats !== 'number' || body.defeats < -1) {
-		console.log('defeats must be a positive number. Query rejected.');
-		res.status(400).send('defeats must be a positive number. Query rejected.')
+		console.log('"defeats" must be a positive number. Query rejected.');
+		res.status(400).send('"defeats" must be a positive number. Query rejected.')
 		return false
 	}
 
 	if (typeof body.games !== 'number' || body.games < -1) {
-		console.log('games must be a positive number. Query rejected.');
-		res.status(400).send('games must be a positive number. Query rejected.')
+		console.log('"games" must be a positive number. Query rejected.');
+		res.status(400).send('"games" must be a positive number. Query rejected.')
+		return false
+	}
+
+	// Kollar så att bodyns wins, defeats och games går ihop
+	if (body.wins + body.defeats !== body.games) {
+		console.log('"games" must be the sum of "wins" and "defeats". Query rejected.');
+		res.status(400).send('"games" must be the sum of "wins" and "defeats". Query rejected.')
 		return false
 	}
 
