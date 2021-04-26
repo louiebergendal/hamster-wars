@@ -9,14 +9,19 @@ const PORT = process.env.PORT || 1339
 const staticFolder = path.join(__dirname, 'static')
 const staticImgFolder = path.join(__dirname, 'static', 'img')
 
-
-// ============= MIDDLEWARE ============= //
-
 /* 
 FRÅGOR:
 	- Ligger min error handler rätt placerad?
+
+	// x cors är protokoll för säker kommunikation mellan flera servrar
+	// x Firestore (en del av Firebase) är databasen
+	// x Heroku är moln-servern
+	// Express är lokala servern?
+	// Static är klient-sidan?
+
 */
 
+// ============= MIDDLEWARE ============= //
 
 // Logger - skriv ut info om inkommande request
 app.use((req, res, next) => {
@@ -25,7 +30,7 @@ app.use((req, res, next) => {
 })
 
 app.use( express.json() )
-app.use( cors() )
+app.use( cors() ) 
 app.use( express.static(staticFolder) )
 app.use( express.static(staticImgFolder) )
 
@@ -35,11 +40,15 @@ app.use( express.static(staticImgFolder) )
 app.use('/books', books)
 app.use('/hamsters', hamsterWars)
 
+
+// ============= RESTEN ============= //
+
 // Starta servern
 app.listen(PORT, () => {
 	console.log('Server listening on port ' + PORT);
 })
 
+// Felhanterare
 app.use(errorHandler)
 function errorHandler (err, req, res, next) {
 

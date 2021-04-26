@@ -287,8 +287,8 @@ function idValidation(id, docRef, res){
 
 	// Kollar ifall hamstern finns
 	if ( !docRef.exists ) {
-		console.log('No such hamster. Query rejected.');
-		res.status(404).send('No such hamster. Query rejected.')
+		console.log('No such hamster.');
+		res.status(404).send('No such hamster.')
 		return false
 	}
 
