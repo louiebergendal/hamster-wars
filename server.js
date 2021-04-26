@@ -3,15 +3,14 @@ const app = express()
 const cors = require('cors')
 const path = require('path')
 const books = require('./routes/books.js')
-const hamsterWars = require('./routes/hamsters.js')
+const hamsters = require('./routes/hamsters.js')
 
-const PORT = process.env.PORT || 1339
+const PORT = process.env.PORT || 1340
 const staticFolder = path.join(__dirname, 'static')
 const staticImgFolder = path.join(__dirname, 'static', 'img')
 
 /* 
 FRÅGOR:
-	- Ligger min error handler rätt placerad?
 
 	// x cors är protokoll för säker kommunikation mellan flera servrar
 	// x Firestore (en del av Firebase) är databasen
@@ -38,15 +37,10 @@ app.use( express.static(staticImgFolder) )
 // ============= ROUTES ============= //
 
 app.use('/books', books)
-app.use('/hamsters', hamsterWars)
+app.use('/hamsters', hamsters)
 
 
 // ============= RESTEN ============= //
-
-// Starta servern
-app.listen(PORT, () => {
-	console.log('Server listening on port ' + PORT);
-})
 
 // Felhanterare
 app.use(errorHandler)
@@ -60,4 +54,9 @@ function errorHandler (err, req, res, next) {
 	res.status(500)
 	res.render('error', { error: err })
 }
+
+// Starta servern
+app.listen(PORT, () => {
+	console.log('Server listening on port ' + PORT);
+})
 

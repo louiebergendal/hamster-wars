@@ -144,6 +144,25 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
 	try {	
 
+		// Validerar body
+		const body = req.body
+
+		if( !body ) { // Finns det en body?
+			console.log('Missing body. Query rejected.');
+			res.status(400).send('Missing body. Query rejected.')
+			return
+		}
+		if( typeof body !== 'object' ) { // Är body ett object?
+			console.log('Body must be an object. Query rejected.');
+			res.status(400).send('Body must be an object. Query rejected.')
+			return
+		}
+		if (Object.keys(body).length < 1) { // Är body-objektet tomt?
+			console.log('Body is empty. Query rejected.');
+			res.status(400).send('Body is empty. Query rejected.')
+			return
+		}
+
 		// Validerar id och kontrollerar att hamstern finns
 		const id = req.params.id
 		const docRef = db.collection('hamsters').doc(id)
@@ -155,14 +174,7 @@ router.put('/:id', async (req, res) => {
 
 		let hamster = doc.data();
 
-		// Validerar body
-		const body = req.body
-
-		if( !body ) {
-			console.log('Missing body. Query rejected.');
-			res.status(400).send('Missing body. Query rejected.')
-			return
-		}	
+		// Kollar så att bodyns properties matchar med databas-hamsterns properties
 		if (!partialKeyValidation(body, hamster, res)) {
 			return
 		}
@@ -178,7 +190,7 @@ router.put('/:id', async (req, res) => {
 			}
 		});
 
-		// Allt gick bra. Hamstern vinner.
+		// Allt gick bra. Hamstern uppdateras.
 		await docRef.set(hamster, { merge: true })
 		res.sendStatus(200)
 
@@ -280,14 +292,14 @@ function idValidation(id, docRef, res){
 
 	// Grundläggande validering av request
 	if( !id ) {
-		console.log('Missing id. Query rejected.');
+//		console.log('Missing id. Query rejected.');
 		res.status(400).send('Missing id. Query rejected.')
 		return false
 	}
 
 	// Kollar ifall hamstern finns
 	if ( !docRef.exists ) {
-		console.log('No such hamster.');
+//		console.log('No such hamster.');
 		res.status(404).send('No such hamster.')
 		return false
 	}
@@ -296,7 +308,7 @@ function idValidation(id, docRef, res){
 	return true
 }
 
-
+// ANVÄNDS I PUT/ID
 function partialValueValidation(body, res){
 
 	console.log('Analyzing object values ...');
@@ -335,6 +347,7 @@ function partialValueValidation(body, res){
 	return true
 }
 
+// ANVÄNDS I PUT/ID
 function partialKeyValidation(body, hamster, res){
 
 	console.log('Analyzing keys ...');
@@ -359,6 +372,7 @@ function partialKeyValidation(body, hamster, res){
 	return true
 }
 
+// ANVÄNDS I POST
 function hamsterKeyValidation(body, res){
 
 	console.log('Analyzing hamster keys ...');
@@ -423,6 +437,7 @@ function hamsterKeyValidation(body, res){
 	return true
 }
 
+// ANVÄNDS I POST
 function hamsterValueValidation(body, res){
 
 	console.log('Analyzing hamster ...');
