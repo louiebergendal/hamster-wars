@@ -24,6 +24,7 @@ FRÅGOR:
 
 // Logger - skriv ut info om inkommande request
 app.use((req, res, next) => {
+	console.log('===============');
 	console.log(`${req.method}  ${req.url} `, req.params);
 	next()
 })
@@ -33,12 +34,10 @@ app.use( cors() )
 app.use( express.static(staticFolder) )
 app.use( express.static(staticImgFolder) )
 
-
 // ============= ROUTES ============= //
 
 app.use('/books', books)
 app.use('/hamsters', hamsters)
-
 
 // ============= RESTEN ============= //
 
