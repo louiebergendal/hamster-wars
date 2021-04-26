@@ -36,7 +36,8 @@ router.get('/', async (req, res) => {
 		const snapshot = await hamstersRef.get()
 
 		if( snapshot.empty ) {
-			res.send([])
+			console.log('No collection found.');
+			res.status(404).send('No collection found.')
 			return
 		}
 	
@@ -65,9 +66,10 @@ router.get('/random', async (req, res) => {
 		// Kollar ifall databasen är tom
 		const hamstersRef = db.collection('hamsters')
 		const snapshot = await hamstersRef.get()
-		
+
 		if( snapshot.empty ) {
-			res.send([])
+			console.log('No collection found.');
+			res.status(404).send('No collection found.')
 			return
 		}
 
@@ -102,7 +104,7 @@ router.get('/:id', async (req, res) => {
 			return
 		}	
 
-		// Allt gick bra. Skickar hamster
+		// Allt gick bra. Skickar hamster.
 		const hamster = docRef.data()	
 		res.status(200).send(hamster)
 
@@ -126,8 +128,10 @@ router.post('/', async (req, res) => {
 			return
 		}
 
+		// Allt gick bra. Hamstern skickas in i databasen, och klienten får ett objekt med hamsterns id.
 		const docRef = await db.collection('hamsters').add(body)
-		res.status(200).send(docRef.id)
+		const idObject = { id: docRef.id } // krävs av uppgifts-specen
+		res.status(200).send(idObject)
 		
 	} catch (error) {
 		console.log(error);
@@ -174,7 +178,7 @@ router.put('/:id', async (req, res) => {
 			}
 		});
 
-		// Allt gick bra
+		// Allt gick bra. Hamstern vinner.
 		await docRef.set(hamster, { merge: true })
 		res.sendStatus(200)
 
@@ -203,7 +207,7 @@ router.put('/:id/win', async (req, res) => {
 		hamster.wins ++;
 		hamster.games ++;
 
-		// Allt gick bra
+		// Allt gick bra. Hamstern förlorar.
 		await docRef.set(hamster, { merge: true })
 		res.sendStatus(200)
 		
@@ -256,7 +260,7 @@ router.delete('/:id', async (req, res) => {
 			return
 		}
 	
-		// Allt gick bra
+		// Allt gick bra, hamstern elimineras
 		await db.collection('hamsters').doc(id).delete()
 		res.sendStatus(200)
 
