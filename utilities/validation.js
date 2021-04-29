@@ -4,10 +4,6 @@ const router = express.Router()
 
 // =================== VALIDERING =================== //
 
-function yo() {
-    console.log('YO! WAZZAP?');
-}
-
 function id(id, docRef, res){
 
 	console.log('Analyzing id ...');
@@ -257,5 +253,4 @@ module.exports = {
     'propertyValues': propertyValues,
     'id': id,
     'bodyObject': bodyObject,
-    'yo': yo
 }

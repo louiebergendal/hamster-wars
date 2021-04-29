@@ -21,11 +21,6 @@ const validation = require('../utilities/validation.js')
 
 // DELETE /hamsters/:id
 
-// ============= NOTES ============= //
-/* 
-	TODO:
-	
-*/
 
 // ** REST API **
 
@@ -126,7 +121,7 @@ router.post('/', async (req, res) => {
 
 		// Allt gick bra. Hamstern skickas in i databasen, och klienten får ett objekt med hamsterns id.
 		const docRef = await db.collection('hamsters').add(body)
-		const idObject = { id: docRef.id } // krävs av uppgifts-specen
+		const idObject = { id: docRef.id } // Objectet krävs av uppgifts-specen
 		res.status(200).send(idObject)
 		
 	} catch (error) {
